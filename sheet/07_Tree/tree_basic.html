@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/tree_basic_data.js"></script>
+		<title>IBSheet7-Product</title>
+		<script type="text/javascript">
+		
+			$(document).ready(function(){
+				try{
+					createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+					LoadPage();
+				}
+				catch(e){
+					alert(e.message);
+				}
+			});
+
+			/*Sheet 기본 설정 */
+			function LoadPage() {
+				//시트 초기화
+				mySheet.Reset();
+				var chk = document.getElementById("useTreeChk").checked,
+					initData = {
+					Cfg : {
+						SearchMode : smLazyLoad,
+						ChildPage : 10,
+						MergeSheet : msAll,
+						TreeNodeIcon : 1,
+						DeferredVScroll : 1
+					},
+					Cols : [
+						{Header:"상태|상태",Type:"Status", Align:"Center",  ColMerge : 0},
+						{Header:"삭제|삭제",Type:"DelCheck", Align:"Center", ColMerge : 0},
+						{Header:"구/동|구/동",Type:"Text", Width:250, TreeCheck:1, TreeCol:1, CheckSaveName : "ChkSaveName", SaveName : "sigudong",  ColMerge : 0, LevelSaveName: "LevelSaveNameTEST", ActionMenu : ["A", "B", "C"]},
+						{Header:"팀원\n평가자조직|팀원\n평가자조직",
+							Type:"CheckBox",
+							Width:70,
+							Align:"Center",
+							SaveName:"memberYn",
+							EditLen:2,
+							TrueValue:"Y",
+							FalseValue:'N'
+						},
+						{Header:"우편번호|번호",Type:"Text", Width:65, Align:"Center",  Format:"PostNo", SaveName : "zipCode", ColMerge : 0},
+						{Header:"주소|주소",Type:"Text", Width:370, Align:"Left",MultiLineText:1, SaveName : "addr", ColMerge : 0, ActionMenu : [{"Text" : "MenuA", "Code" : "A"}, {"Text" : "MenuB", "Code" : "B"}]},
+						{Header:"트리\n레벨|레벨",Type:"Int", Width:40, Align:"Center", SaveName : "lev"}
+					]
+				};
+				
+				IBS_InitSheet(mySheet, initData);
+				
+				//트리컬럼 체크박스 사용시 어미/자식 간의 연관 체크기능 사용
+				mySheet.SetTreeCheckActionMode(1); 
+				
+				mySheet.SetEditable("1");
+				mySheet.SetVisible(true);
+				mySheet.SetCountPosition(4);
+		
+				mySheet.SetTreeActionMode("1")
+				mySheet.SetTreeCheckActionMode("1");
+				
+				mySheet.FitColWidth();
+		 		// Filter 헤더 추가
+		 		/*
+					트리와 필터가 동시에 선언되어있을때 잘 동작하는지 확인해보았는데
+					문제 없이 필터링이 동작하는거로 보여지나,
+					하지만 하위Depth의 데이터행의 필터링이 적용되어지면 해당 행의 상위Depth행은 표시되어지도록 구현되어 있는데,
+					이때 그 상위 Depth행의 데이터가 필터링조건에 해당 할 경우 정합성의 문제가 발생한다.
+					웬만하면 두 기능을 동시에 사용하지 않는걸 권장 함.
+					
+				*/
+				//mySheet.ShowFilterRow();  
+		 		
+				doAction('search');
+				
+			}
+			var row = "";
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":
+						mySheet.LoadSearchData(jsonData);
+						mySheet.ShowTreeLevel(0);
+						break;
+					case "reload":
+						mySheet.RemoveAll();
+						break;
+					case "save":
+						var str = mySheet.GetSaveString();
+						alert(str);
+						break;
+					case "insert":
+						var srow = mySheet.GetSelectRow();
+						row = mySheet.DataInsert(srow+1,   mySheet.GetRowLevel(srow)+1 ); 
+						break; 
+				}
+			}
+		
+			function doEvent(obj, val){
+				switch (obj){
+					case "open":
+						val = parseInt(val);
+						var openlevel = parseInt(document.getElementById("levelCombo").value);
+						var childopen = parseInt(document.getElementById("openCombo").value);
+						//레벨별 트리 접기/펼침
+						mySheet.ShowTreeLevel(openlevel,childopen);
+						break;
+					case "act":
+						val = parseInt(val);
+						//어미노드삭제 체크시 하위노드 체크 여부
+						mySheet.SetTreeActionMode(val); 
+						break;
+				}
+			}
+			
+			// 트리 체크 박스 클릭시 강제로 상태값을 변경 해줄 수 있다.
+			function mySheet_OnTreeCheckChange(row, col, value, level, hasChild) {
+				if(value){
+					mySheet.SetRowStatus(row, "U");
+				}else{
+					mySheet.SetRowStatus(row, "R");
+				}
+			}
+		
+			function mySheet_OnSelectMenu(code, text, col){
+				console.log(mySheet.MouseRow());
+			}
+		</script>
+	</head>
+	<body onLoad="LoadPage()">
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">트리(Tree) 기능 > <b>트리 일반</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">트리 컬럼 기본 기능을 확인한다.</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('insert')" class="f1_btn_gray lightgray">추가</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+				<a href="javascript:doAction('save')" class="f1_btn_white gray">저장</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<div class="ib_function2 border_sheet">
+				<table class="ib_basic">
+					<tr>
+						<th class="tit">보여질레벨</th>
+						<td class="r20">
+							<select id="levelCombo"  class="selectbox">
+								<option value="0" selected="selected">모두 접기</option>
+								<option value="-1" selected="selected">모두 펼치기</option>
+								<option value="1">1레벨까지</option>
+								<option value="2">2레벨까지</option>
+								<option value="3">3레벨까지</option>
+							</select> 
+						</td>
+						<th class="tit">자식레벨</th>
+						<td class="r20">
+							<select id="openCombo" class="selectbox"  style="width:100%">
+								<option value="0" selected="selected">이전상태유지</option>
+								<option value="1">모두 접음</option>
+								<option value="2">모두 펼침</option>
+							</select>
+						</td>
+						<td rowspan="2"><a href="javascript:doEvent('open',0);" class="f2_btn_white btn_sheet">적용</a></td>
+					</tr>
+					<tr>
+						<th class="tit">처리방식</th>
+						<td class="r20" colspan="3">
+							<select id="treeActionCombo"  onchange="doEvent('act',this.value)" class="selectbox" style="width:100%">
+								<option value="0" selected="selected">자식유 삭제불가, 부모=삭제 삭제취소불가</option>
+								<option value="1">삭제체크 시 자식까지 삭제체크</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th class="tit">트리 체크 기능 사용</th>
+						<td class="r20">
+							<input class="checkbox"  type="checkbox" id="useTreeChk" onchange="LoadPage()">
+						</td>
+						
+					</tr>
+				</table>
+			</div>
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>

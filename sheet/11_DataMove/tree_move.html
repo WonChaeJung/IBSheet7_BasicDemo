@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>IBSheet7-Product</title>
+
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="./data/tree_move_data1.js"></script>
+		<script type="text/javascript" src="./data/tree_move_data2.js"></script>
+		<script type="text/javascript">
+		
+			$(document).ready(function(){
+				try{
+					createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+					createIBSheet2("ibsheetArea2", "mySheet2", "100%", "100%");
+					LoadPage();
+				}
+				catch(e){
+					alert(e.message);
+				}
+			});
+		
+			/*Sheet 기본 설정 */
+			function LoadPage() {
+				var initData = {};
+				initData.Cfg = {
+					SearchMode : smLazyLoad,
+					Page : 50,
+					MergeSheet : msHeaderOnly,
+					ChildPage : 10,
+					TreeDragIconMode : 0,
+					AutoFitColWidth : "resize|search",
+					DragMode : 1
+				};
+				
+				initData.Cols = [
+					{Header:"",Type:"DummyCheck", SaveName:"chk", Width:35, Align:"Center",Edit:1,HeaderCheck:1},
+					{Header:"직급",Type:"Text", SaveName:"sPos", Width:60, Align:"Center"},
+					{Header:"성명",Type:"Text", SaveName:"sName", Width:50, Align:"Center",Edit:0},
+					{Header:"성별",Type:"Combo", SaveName:"sSex", Width:40, Align:"Center",ComboText:"男|女",ComboCode:"남|여"},
+					{Header:"연령대",Type:"Text", SaveName:"sAge2", Width:50, Align:"Center"},
+					{Header:"거주지1",Type:"Text", SaveName:"sAddr1", Width:50, Align:"Center"},
+					{Header:"나이",Type:"Int", SaveName:"sAge", Width:50, Align:"Right"},
+				];
+		
+				IBS_InitSheet(mySheet,initData);
+				
+				mySheet.SetDataAutoTrim(0);
+				initData.Cols = [
+					{Header:"부서/성명",Type:"Text", SaveName:"sName", Width:150, Align:"Left",TreeCol:1},
+					{Header:"직급",Type:"Text", SaveName:"sPos", Width:60, Align:"Center",Edit:0},
+					{Header:"직급",Type:"Text", SaveName:"sSex", Width:50, Align:"Center"},
+					{Header:"직급",Type:"Text", SaveName:"sAge2", Width:50, Align:"Center"},
+					{Header:"거주지1",Type:"Text", SaveName:"sAddr1", Width:80, Align:"Center"},
+					{Header:"나이",Type:"Int", SaveName:"sAge", Width:50, Align:"Right"},
+					{Header:"상태",Type:"Status", SaveName:"sStatus",Hidden:1}
+				];
+				
+				IBS_InitSheet(mySheet2, initData);
+				
+				mySheet2.SetRowBackColorI("#EDEDED");
+
+				doAction('search');
+				
+				mySheet.FitColWidth();
+				mySheet2.FitColWidth();
+			}
+		
+			function mySheet_OnDropEnd(FromSheet, FromRow, ToSheet, ToRow, X, Y, Type) {
+				//같은 시트에서는 데이터이동 안됨.
+				if(FromSheet == ToSheet) return;
+				
+				var rowjson = FromSheet.GetRowData(FromRow);
+				
+				//행 데이터 복사
+				ToSheet.SetRowData(ToRow+1 , rowjson ,{Add:1} );
+				
+				//원본 데이터 삭제
+				FromSheet.RowDelete(FromRow);
+				
+			}
+		
+		
+			//드레그 드롭 데이터 이동
+			function mySheet2_OnDropEnd(FromSheet, FromRow, ToSheet, ToRow, X, Y, Type) {
+				//드레그 한 행의 데이터를 json형태로 얻음
+				var rowjson = FromSheet.GetRowData(FromRow);
+				
+				var posRow = FromRow;
+				if(FromSheet==ToSheet&&ToRow<FromRow){
+					//같은 시트내에서 이동은 신경을 써야 함.	
+					posRow++;
+				}
+				
+				//드롭 지점의 레벨을 확인
+				var lvl = ToSheet.GetRowLevel(ToRow);
+				
+				//레벨이 부서 이상이면 리턴
+				if(lvl<2) return;
+				
+				//행 데이터 복사(트리임으로 레벨을 고려할 것)
+				ToSheet.SetRowData(ToRow+1 , rowjson ,{Add:1,Level:3} );
+		
+				//원본 데이터 삭제
+				FromSheet.RowDelete(posRow);
+				
+			}
+		
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":
+						mySheet.LoadSearchData(jsonData1);
+						mySheet2.LoadSearchData(jsonData2);
+						break;
+					case "reload":
+						mySheet.RemoveAll();
+						break;
+					case "save":      
+						var str = mySheet.GetSaveString();
+						alert(str);
+						break;
+					case "insert":
+						mySheet.DataInsert(); 
+						break; 
+				}
+			}
+			
+			//버튼을 이용한 이동
+			function move(to){
+				var ToSheet,FromSheet;
+				if(to=="toRight"){
+					ToSheet = mySheet2;
+					FromSheet = mySheet;
+					//체크된 행이 있는지 찾아본다.
+					var rows = FromSheet.FindCheckedRow("chk");
+					//복사될 위치를 구한다.
+					var ToRow = ToSheet.GetSelectRow();
+					if(ToSheet.GetRowLevel(ToRow)<2){
+						alert("오른쪽 시트에서 붙여넣을 팀을 선택해 주세요");
+						return;
+					}
+					if(rows==""){
+						//현재 포커스가 들어간 행을	이동시킨다.
+						var FromRow = FromSheet.GetSelectRow();
+						mySheet2_OnDropEnd(FromSheet, FromRow, ToSheet, ToRow, 0,0, 0);
+					}else{
+						//체크된 행을 모두 복사.	
+						var jsonArr = [];
+						var rs = rows.split("|");
+						
+						//렌더링 일시 중지
+						ToSheet.RenderSheet(false);
+						
+						//데이터 복사
+						for(var i=0;i<rs.length;i++){
+							var rowJson = FromSheet.GetRowData(rs[i]);
+							ToSheet.SetRowData(ToRow+1,rowJson , {Add:1,Level:3});
+						}
+						
+						//렌더링 재가동
+						ToSheet.RenderSheet(true);
+						
+						//원본 데이터 삭제
+						FromSheet.RowDelete(rows);
+					}
+				}else{ //toLeft
+					//반대방향으로 이동하는 것은 시트 모양이 안예뻐서 안 만들었음.
+					ToSheet = mySheet;
+					FromSheet = mySheet2;
+				}	
+			}
+		
+		
+			/**
+			 *  sheet : [string] sheet객체명
+			 *  type : [string] 'up' : 위로 이동 
+			 *                   'down' : 아래로 이동
+			 *  desc : 트리 구조에서 선택한 행을 위 아래로 이동 시킴
+			 */
+			function dataMove(sheet, type){
+				
+				var objSht = window[sheet];
+				
+				if(objSht == 'undefined' || objSht == undefined){
+					return false;
+				}
+				
+				var rowIdx = objSht.GetSelectRow(),
+					headRow = objSht.HeaderRows(),
+					lastRow = objSht.LastRow,
+					curRowLev = objSht.GetRowLevel(rowIdx),
+					flg = true;
+				
+				if(rowIdx < 0){
+					return false;
+				}
+				
+				if(rowIdx > headRow){
+					
+					if(type == "up"){
+						var targetIdx = rowIdx;
+						while(flg){
+							targetIdx-=1;
+							if(objSht.GetRowLevel(targetIdx) < curRowLev){
+								return;
+							}
+							if( targetIdx == headRow || objSht.GetRowLevel(targetIdx) == curRowLev){
+								flg = false;
+							}
+						}
+					}
+					
+					if(type == "down"){
+						console.log('down');
+						var targetIdx = rowIdx;
+						while(flg){
+							targetIdx+=1;
+							if(objSht.GetRowLevel(targetIdx) < curRowLev){
+								return;
+							}
+							
+							if( targetIdx == headRow || objSht.GetRowLevel(targetIdx) == curRowLev){
+								targetIdx+=1;
+								flg = false;
+							}
+						}
+					}
+				}
+				
+				// 데이터 이동시킴
+				objSht.DataMove(targetIdx, rowIdx)
+			}
+			
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">데이터 이동 &gt; <b>트리 데이터 이동</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">좌/우측 데이터를 버튼이나 Drag&Drop을 통해 이동해 본다.</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+				<a href="javascript:excelDown()" class="f1_btn_white gray">excelDown</a>
+				<a href="javascript:dataMove('mySheet2','up')" class="f1_btn_white gray">Move : Up</a>
+				<a href="javascript:dataMove('mySheet2','down')" class="f1_btn_white gray">Move : Down</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product" style="width:100%;float:left">
+				<div style="height:100%;width:43%;float:left">
+					<div id="ibsheetArea1"></div>
+				</div>
+				<div style="height:100%;width:10%;float:left;">
+					<div style="position:relative; top:50%; text-align:center">
+						<a href="javascript:move('toRight');" class="f2_btn_white btn_sheet">&gt;</a>
+					</div>
+				</div>
+				<div style="height:100%;width:43%;float:left;">
+					<div id="ibsheetArea2"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

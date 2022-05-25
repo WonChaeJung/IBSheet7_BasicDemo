@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/merge_data.js"></script>
+		<title>IBSheet7-Product</title>
+		<style>
+			.GMCellHeader,.GMCellHeaderEmpty{
+				vertical-align:middle;
+				overflow:hidden;
+				height:auto;
+				background-color:#fff;
+				padding-top:1px;
+				border-right:1px solid #99BCE8;
+				border-bottom:1px solid #99BCE8;
+			}
+		</style>
+		<script type="text/javascript">
+
+			$(document).ready(function(){
+				try{
+					createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+					LoadPage();
+				}
+				catch(e){
+					alert(e.message);
+				}
+			});
+			
+			function LoadPage() {
+
+				var initdata = {};
+				initdata.Cfg = {
+					SearchMode : smLazyLoad,
+					UpdateMergeCells : 1,
+					PrevColumnMergeMode : 1,
+					MergeSheet:msHeaderOnly
+				};
+				
+				initdata.Cols = [
+					{Header:"No|No","Type":"Seq","MinWidth":30, ColMerge : 0},
+					{Header:"신청인|신청인","Type":"Text","MinWidth":80, "Align" : "Center", "ColMerge":1, SaveName : "name"},
+					{Header:"신청일자|신청일자","Type":"Date","Width":100,"Format":"Ymd","ColMerge":1,"Align":"Center", SaveName : "date1"},
+					{Header : "결재여부|결재여부", "Type" : "CheckBox", "Width":80, "SaveName" : "A", "ColMerge":0, SaveName : "payYn"},
+					{Header:"신청금액|신청금액","Type":"AutoSum","Width":85,"SaveName":"B","Format":"Integer","ColMerge":0, SaveName : "cost"},
+					{Header:"근태기간1|시작일","Type":"Date","Width":100,"SaveName":"C","Format":"Ymd","Align":"Center","ColMerge":0, SaveName : "date2"},
+					{Header:"근태기간2|시작일","Type":"Date","Width":100,"SaveName":"D","Format":"Ymd","Align":"Center","ColMerge":0, SaveName : "date3"},
+					{Header:"시간|시작","Type":"Date","Width":100,"Format":"Hm","Align":"Center","ColMerge":1, SaveName : "startTime"},
+					{Header:"시간|종료","Type":"Date","Width":100,"Format":"Hm","Align":"Center","ColMerge":1, SaveName : "endTime"}
+				];
+
+				IBS_InitSheet(mySheet,initdata);
+				mySheet.FitColWidth();		   
+				doAction('search');
+			}
+		
+		
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":
+						mySheet.LoadSearchData(jsonData);
+						break;
+					case "reload":
+						mySheet.RemoveAll();
+						break;
+				}
+			}
+			
+			//머지 영역 교체 (머지는 조회 중에 이루어짐으로 재 조회 한다.)
+			function mergeChg(str){
+				mySheet.SetMergeSheet(eval(str));
+				doAction('search');
+			}
+			
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">머지(Merge)기능 > <b>기본기능</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">머지영역에 따른 자동머지 기능을 확인한다.</div>
+			<div class="ib_function float_right">
+			    <a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+			    <a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<div class="ib_function2 border_sheet">
+				<table class="ib_basic">
+					<tr>
+						<th class="tit">머지종류 -  </th>
+						<td><input type="radio" name="rdo" value="전체머지없음"  onClick="mergeChg('msNone')"  class="radio" />전체머지없음</td>
+						<td><input type="radio" name="rdo" value="헤더만머지"  onClick="mergeChg('msHeaderOnly')"  class="radio" checked/>헤더만머지</td>
+						<td><input type="radio" name="rdo" value="전체머지가능"  onClick="mergeChg('msAll')"  class="radio" />전체머지가능</td>
+						<td><input type="radio" name="rdo" value="앞컬럼기준머지"  onClick="mergeChg('msHeaderOnly + msPrevColumnMerge')"  class="radio" />앞컬럼기준머지</td>
+					</tr>
+				</table> 
+			</div>
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>

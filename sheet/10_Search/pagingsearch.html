@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/pagingsearch_data.js"></script>	
+		<title>IBSheet7-Product</title>
+		<script type="text/javascript">
+		
+			$(document).ready(function(){
+				createIBSheet2("sheetArea", "mySheet", "100%", "100%");
+				LoadPage();
+			});
+			
+			function LoadPage() {
+				var initSheet = {
+					Cfg : {
+						SearchMode:smClientPaging,
+						Page:50,
+						SelectionSummary : "EmptyCell|DelRow",
+						MergeSheet:msHeaderOnly
+					},
+					HeaderMode : {
+						Sort:1,
+						ColMove:1,
+						ColResize:1,
+						FitSizeColMode : 0,
+						HeaderCheck:1
+					}
+				};
+				
+				initSheet.Cols = [
+					{Header:"순번", Type:"Seq", Width:20, Align:"Center"},
+					{Header:"상태", Type:"Status", Width:35, Align:"Center"},
+					{Header:"", Type:"CheckBox", SaveName : "CHK_DATA", Width:35, Align:"Center", Sort : 0},
+					{Header:"개봉일",Type:"Date",MinWidth:85,SaveName:"OPEN_DATE",Format:"Ymd",Align:"Center"},
+					{Header:"영화명",Type:"Text",MinWidth:180,SaveName:"MOVIE_NM"},
+					{Header:"영문제목",Type:"Text",MinWidth:150,SaveName:"ENG_NM", KeyField : 1},
+					{Header:"감독",Type:"Text",MinWidth:120,SaveName:"DIRECTOR"},
+					{Header:"주연배우",Type:"Text",MinWidth:150,SaveName:"ACTOR"},
+					{Header:"등급",Type:"Combo",MinWidth:50,SaveName:"FILM_RATE",Align:"Center",ComboText:"12세|15세|18세|전체|청불",ComboCode:"01|02|03|04|05",PopupText:"12세|15세|18세|전체|청불"}
+				];
+				
+				IBS_InitSheet(mySheet,initSheet);
+				
+				mySheet.FitColWidth();
+				mySheet.SetCountPosition(4);
+				mySheet.SetPagingPosition(1);
+				doAction('search');
+			}
+			
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":      //조회
+						mySheet.LoadSearchData(jsonData);
+						break;
+					case "reload":	//조회데이터 제거
+						mySheet.RemoveAll();
+						break;
+					case "save":	//저장할 데이터 추출
+						alert(mySheet.GetSaveString());
+						break;
+				}
+			}
+			
+			//페이지 네비게이션 표시
+			function navigation(chk){
+				if(chk){
+					//페이지 네비게이션 버튼 표시
+					mySheet.SetPagingPosition(0);	
+					document.getElementById("pageindex").style.display="inline";
+				}else{
+					//페이지 네비게이션 버튼 표시
+					mySheet.SetPagingPosition(1);	
+					document.getElementById("pageindex").style.display="none";
+				}
+			}
+			
+			//조회 후 call back 이벤트
+			function mySheet_OnSearchEnd() {
+				console.log("OnSearchEnd");
+				makePageIndex(1,"mySheet");
+			}
+			
+			//헤더 클릭시 소팅후 call back 이벤트
+			function mySheet_OnSort(Col,SortArrow){
+				var nowPage = mySheet.GetCurrentPage();
+				makePageIndex(nowPage,"mySheet");	
+			}
+			
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">데이터 조회 > <b>페이징조회</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">
+				전체 데이터를 조회 후 일정 건수만 화면에 로딩하고, 페이지버튼을 누르때 마다 조회된 데이터 중에 페이지에 해당하는 데이터를 화면에 보여준다.
+			</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<div class="ib_function2 border_sheet">
+				<table class="ib_column2">
+					<tr>
+						<td><input class="checkbox" type="checkbox" id="navi"  onchange="navigation(this.checked)"/></td>
+						<td class="r20">페이지 네비게이션</td>
+					</tr>
+				</table>
+			</div>
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product" style="width:100%;">
+				<div id="sheetArea"></div>
+			</div>
+			<div class="space" style="height:5px"></div>  
+			<div id="pageindex" style="text-align:center;display:none;"></div>
+		</div>
+	</body>
+</html>

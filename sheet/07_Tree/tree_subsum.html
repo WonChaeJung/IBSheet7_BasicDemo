@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/tree_subsum_data.js"></script>
+		<title>IBSheet7-Product</title>
+		<script type="text/javascript">
+
+			$(document).ready(function(){
+				createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+				LoadPage();
+			});
+		
+			/*Sheet 기본 설정 */
+			function LoadPage() {
+				var initData = {
+					"Cfg": {
+						"SearchMode": smLazyLoad,
+						"MergeSheet": msHeaderOnly,
+						"ChildPage": 5,
+						"AutoFitColWidth": "search|resize|init|colhidden|rowtransaction",
+						"DeferredVScroll": 1
+					},
+					"Cols": [
+						{"Header": "No|No|No", "Type": "Seq", "Width": 81, "SaveName": "sSeq", "ShowMobile": 0},
+						{"Header": "분류|분류|분류", "Type": "Text", "Width": 406, "SaveName": "sItem", "TreeCol": 1},
+						{"Header": "건수|건수|건수", "Type": "Int", "Width": 130, "SaveName": "sCount", "Align": "Right"},
+						{"Header": "2005/05/14~2005/05/14|전체합계|신규", "Type": "AutoSum", "Width": 163, "SaveName": "sNew", "Align": "Center", "Format": "#,##0"},
+						{"Header": "2005/05/14~2005/05/14|전체합계|해지", "Type": "AutoSum", "Width": 163, "SaveName": "sCancel", "Align": "Center", "Format": "#,##0"},
+						{"Header": "2005/05/14~2005/05/14|전체합계|유지", "Type": "AutoSum", "Width": 163, "SaveName": "sMaintain", "Align": "Center", "Format": "#,##0"}
+					]
+				};
+
+				IBS_InitSheet(mySheet, initData);
+				
+				mySheet.FitColWidth();
+
+				mySheet.SetSumText(1, "합   계");
+
+				mySheet.ShowTreeSubSum({
+					"CountCols": "2",
+					"SumCols": "3|4|5"
+				});
+
+				doAction("search");
+			}
+		
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":
+						mySheet.LoadSearchData(jsonData);
+						break;
+					case "reload":
+						mySheet.RemoveAll();
+						break;
+					case "save":      
+						var str = mySheet.GetSaveString();
+						alert(str);
+						break;
+					case "insert":
+						mySheet.DataInsert(); 
+						break; 
+				}
+			}
+			
+			function mySheet_OnSearchEnd(code,msg){
+				try{
+					var hr = mySheet.HeaderRows()+1;
+					var lr = mySheet.LastRow()+1;
+					
+					for(var i=hr; i<lr; i+=1){
+						var lvl = mySheet.GetRowLevel(i);
+						switch(lvl){
+							case 0:
+								mySheet.SetRowBackColor(i,"#CFDADA");
+							break;
+							case 1:
+								mySheet.SetRowBackColor(i,"#D9E4E4");
+							break;
+							case 2:
+								mySheet.SetRowBackColor(i,"#E3EEEE");
+							break;
+						}	
+					}
+				}catch(e){
+					alert(e.message);
+				}
+			}
+			
+			function mySheet_OnChange(row, col, newvalue, oldvalue){
+				console.log(row, col, newvalue, oldvalue);
+				alert(1)
+				if(newvalue > oldvalue){
+					
+					mySheet.SetCellValue(row, col, oldvalue);
+				}
+				return false;
+			}
+			
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">트리(Tree) 기능 > <b>트리 소계</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">트리를 이용한 상단 소계 기능에 대해 알아본다.</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1">
+			</div>
+		</div>
+	</body>
+</html>

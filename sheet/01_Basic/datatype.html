@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/datatype.js"></script>
+
+		<title>IBSheet7-Product</title>
+	</head>
+	<script type="text/javascript">
+	
+		var mySheet;
+
+		$(document).ready(function(){
+			try{
+				createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+				LoadPage();
+			} catch(e){
+				alert(e.message);
+			}
+		});
+
+		/*Sheet 기본 설정 */
+		function LoadPage() {
+	
+			var strCombo = "대기|진행중|완료",
+				strCode = "01|02|03",
+				strCombo2 = "고려대학교|국민대학교|서울대학교|숙명여자대학교|연세대학교|울산대학교|울산과학기술대학교|이화여자대학교|인천대학교|인천가톨릭대학교",
+				strCode2 = "AA|BB|CC|DD|EE|FF|GG|HH|II|JJ";
+
+			var initSheet = {
+				Cfg : {
+					FrozenCol : 3,
+					SelectionMode : 2,
+					MultiCheckValue : 1,
+					EditArrowBehavior : 2,
+					AutoFitColWidth : "search|resize",
+					ComboMaxHeight : 350,
+					TouchScroll : 1
+				},
+				HeaderMode : {Sort : 1, ColMove : 1, ColResize : 1, HeaderCheck : 1},
+				Cols : [
+					{Header:"체크", Type:"CheckBox", SaveName:"CHECKBOX_DATA", MinWidth : 40, TrueValue:"Y", FalseValue:'N'},
+					{Header:"NO", Type:"Seq", MinWidth : 30, SaveName:"seq"},
+					{Header:"상태", Type:"Status", Align:"Center", MinWidth : 50, SaveName:"sStatus"},
+					{Header:"더미", MinWidth : 50, SaveName : "DUMMYCHECKBOX_DATA", DefaultValue : 0, Type:"DummyCheck"},
+					{Header:"삭제", Type:"DelCheck", MinWidth : 50, SaveName : "DelCheck"},
+					{Header:"문자열", Type :"Text", SaveName :"TEXT_DATA", MinWidth : 70, MultiLineText : 1, Wrap : 1, ToolTip : 1},
+					{Header:"콤보", Type:"Combo", MinWidth :70, SaveName :"COMBO_DATA", ComboText : strCombo, ComboCode : strCode, PopupCheckEdit : 1, PopupText : strCombo, PopupCode : strCode},
+					{Header:"콤보에디트", Type:"ComboEdit", MinWidth:80, SaveName:"COMBOEDIT_DATA", ComboText : strCombo2, ComboCode : strCode2, PopupText : strCombo2, PopupCode : strCode2},
+					{Header:"팝업", Type:"Popup", MinWidth:70, DefaultValue : "none", SaveName:"ISO"},
+					{Header:"팝업에디트", Type:"PopupEdit", SaveName:"CURRENCY", MinWidth:110, InputCaseSensitive : 1, PopupCheckEdit : 1},
+					{Header:"자동합계", Type:"AutoSum", SaveName:"AUTOSUM_DATA", Align:"Right", AllowNull : 1, DefaultValue : 9999, MinWidth:70, Format:"#,##0"},
+					{Header:"자동평균", Type : "AutoSum", Align : "Right", RowMerge : 1, SaveName : "AUTOAVG_DATA", MinWidth : 70, AllowNull : 0, Format : "#,###", SumType : "AVG"},
+					{Header:"정수", Type:"Int", Align:"Right", SaveName:"INT_DATA", MinWidth:70},
+					{Header:"실수", Type:"Float", Align:"Right", SaveName:"FLOAT_DATA", AllowNull : 1, PointCount : 4, MinWidth:70},
+					{Header:"날짜", Type:"Date", SaveName:"DATE_DATA", Align:"Center", Format: "Ymd", DefaultValue : "20180329", MinWidth:100, EditLen:8 },
+					{Header:"주민/사업자번호", Type:"Text", Align:"Center", SaveName:"IDNO", Format:["IdNo","SaupNo"], MinWidth:100},
+					{Header:"우편번호", Type:"Text", Align:"Center", SaveName:"POSTNO", Format:"PostNo", MinWidth:70},
+					{Header:"카드번호", Type:"Text",  Align:"Center", SaveName:"CARDNO", Format:"CardNo", MinWidth:130},
+					{Header:"전화번호", Type:"Text", Align:"Center", SaveName:"PHONENO", Format:"PhoneNo", MinWidth:90},
+					{Header:"사용자 정의 포멧", Type:"Text", Align:"Center", SaveName:"USERFORMAT", Format:"###-**-**###", MinWidth:100},
+					{Header:"이미지", Type:"Image", Align:"Center", FitColWidth : 0, SaveName:"IMAGE_DATA",ImgHeight:15, MinWidth:70},
+					{Header:"패스워드", Type:"Pass", StaticPassword : 0, MinWidth : 100, SaveName:"PASS_DATA"},
+					{Header:"버튼", Type:"Button", SaveName:"BUTTON", DefaultValue:"상세정보", MinWidth : 100, Align:"Center"},
+					{Header:"다중체크박스", Type:"CheckBox", SaveName:"MULTICHECKBOX_DATA", MinWidth:140, ItemText:"상|중|하", ItemCode:"H|M|L", MaxCheck:2},
+					{Header:"체크박스", Type:"CheckBox", MinWidth : 100, SaveName:"CHECKBOX_DATA2", DefaultValue : 1},
+					{Header:"라디오", Type:"Radio", DefaultValue : 1, MinWidth : 100, SaveName:"RADIO_DATA"}
+				]
+			};
+			
+			IBS_InitSheet( mySheet , initSheet);
+
+			//시트에서 보여질 이미지 배열 구성
+			mySheet.SetImageList(0,"");
+			mySheet.SetImageList(1,"../../common/img/ca.jpg");
+			mySheet.SetImageList(2,"../../common/img/ch.png");
+			mySheet.SetImageList(3,"../../common/img/fe.jpg");
+			mySheet.SetImageList(4,"../../common/img/ko.jpg");
+			mySheet.SetImageList(4,"../../common/img/ru.jpg");
+			
+			// 달력 팝업 이미지를 표시하도록 함
+			mySheet.SetShowButtonImage(2);
+
+			mySheet.AllowEvent4CheckAll(0);
+			
+			doAction("search");
+			
+		}
+
+		/*Sheet 각종 처리*/
+		function doAction(sAction) {
+			switch(sAction) {
+				case "search":
+					mySheet.LoadSearchData(jsonData);
+					break;
+				case "reload":
+					mySheet.RemoveAll();
+					break;
+				case "save":
+					alert(mySheet.GetSaveString());
+					break;
+				case "insert":
+					var row = mySheet.DataInsert();
+					break;
+			}
+		}
+		
+		//Popup,PopupEdit 컬럼에 팝업 버튼 클릭시 호출 이벤트
+		function mySheet_OnPopupClick(Row,Col){
+			// alert(`${Row} 행,  ${Col} 열 팝업버튼 클릭`);
+			alert(Row + " 행 " + Col + " 열 팝업버튼 클릭");
+			return;
+			if(Col == mySheet.SaveNameCol("ISO")){
+				var v = mySheet.GetCellText(Row,"ISO");
+				document.getElementById("popupFrame").src="./popup.jsp?searchCondition="+encodeURIComponent(v);
+				//DIV 형태의 팝업창을 띄운다.
+				showAndHide(1);
+			}else if(Col == mySheet.SaveNameCol("DATE_DATA")){
+				mySheet.ShowCalendar();
+			}
+		}
+		
+		
+		//DIV 형태의 팝업창 
+		function showAndHide(flag){
+			if(flag){
+				//block이 있는지 확인
+				if($("#block").length==0){
+					//block 생성하기
+					$("<div/>", {
+					    id: "block",
+					   css:{position:"absolute",top:0,left:0,width:"100%",height:"100%","background-color":"#777777", opacity: "0.4",    filter: "alpha(opacity=40)"}
+					}).appendTo(document.body);
+				}else{ $("#block").show();}
+				
+				
+				//팝업이 나타날 위치 계산하기
+				//시트 안에서 해당 열의 left 값
+				var pleft =  ($(window).width()/2)-200;
+				//시트 안에서 해당 행의 top 값
+				var ptop =  ($(window).height()/2)-100;
+				$("#popupDiv").css("top",ptop).css("left",pleft);
+				$("#popupDiv").show();
+			}else{
+				//감춘다.
+				$("#block").hide();
+				$("#popupDiv").hide();
+			}
+		}
+		
+		function mySheet_OnLoadData(data){
+			data = data.replace(/&lt;/gi,"<").replace(/&gt;/gi,">")
+			var jsonData = new Function("return " + data.replace(/^[^\<\{]*\{/, '{').replace(/\}[^\}]*$/, '}')),
+				objJson = jsonData(),
+				sheetData = objJson["Data"];
+			__data = data;
+			for(var i=0; i<sheetData.length; i+=1){
+				if(sheetData[i]["COMBO_DATA"] == "02"){
+					sheetData[i]["HTML"] = "<input type='button' value='"+sheetData[i]["TEXT_DATA"]+"' />"
+				}
+			}
+			return objJson;
+		}
+
+		
+		//DIV팝업으로 부터 받은 내용을 시트에 반영한다.
+		function setData(rowData){
+			mySheet.SetRowData(  mySheet.GetSelectRow(),  rowData);
+			
+		}
+
+	</script>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">기본기능 > <b>데이터타입/포맷</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">각 컬럼별  데이터 타입, 데이터 포멧을 확인한다.</div>
+			<div class="ib_function float_right">
+				<a href="javascript:mySheet.RowDelete()" class="f1_btn_gray lightgray">삭제</a>
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('insert')" class="f1_btn_gray lightgray">추가</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+				<a href="javascript:doAction('save')" class="f1_btn_white gray">저장</a>
+			</div>
+			<div class="clear hidden"></div>
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+		<div id="popupDiv" style="position:absolute;z-index:300;top:100px;left:300px;width:400px;height:200px;background-color:#FFFFFF;display:none">
+			<iframe id="popupFrame" src="" style="width:100%;height:100%;padding:0px;margin:0px;border:0px"></iframe>
+		</div>
+	</body>
+</html>

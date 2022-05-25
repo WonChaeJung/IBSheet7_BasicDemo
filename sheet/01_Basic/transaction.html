@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/transaction.js"></script>
+		<script type="text/javascript" src="../../common/js/jquery-ui-1.12.1/jquery-ui.js"></script>
+		<link rel="stylesheet" href="../../common/js/jquery-ui-1.12.1/jquery-ui.css">
+		<title>IBSheet7-Product</title>
+		<script type="text/javascript">
+
+			function LoadPage() {
+				createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+
+				if(!Grids[0].HeaderText){
+					$("<span class='title'>("+mySheet.Version()+")</span>").appendTo(".page_title");
+				}
+
+				//아이비시트 초기화
+				var initSheet = {};
+
+				initSheet.Cfg = {
+					FrozenCol : 1,
+					TouchScroll : 1
+				};
+				
+				initSheet.Cols = [
+					{Header:"순번",Type:"Seq",SaveName:"SEQ",Align:"Center"},
+					{Header:"상태",Type:"Status",Width:30,SaveName:"STATUS",Align:"Center"},
+					{Header:"",Type:"DelCheck",Width:50,SaveName:"DEL_CHK"},
+					{Header:"개봉일",Type:"Date",MinWidth:85,SaveName:"OPEN_DATE",Format:"Ymd",Align:"Center", VAlign : "Top"},
+					{Header:"영화명",Type:"Text",Width:55,SaveName:"MOVIE_NM", KeyField:1, MultiLineText : 1, ToolTip : 1, "Format" : "#,###", VAlign : "Middle"},
+					{Header:"영문제목",Type:"Text",Width:120,SaveName:"ENG_NM", Format : "email", VAlign : "Bottom"},
+					{Header:"감독",Type:"Text",Width:100,SaveName:"DIRECTOR"},
+					{Header:"주연배우",Type:"Text",Width:120,SaveName:"ACTOR"},
+					{Header:"등급",Type:"Combo",Width:30,SaveName:"FILM_RATE",Align:"Center",ComboText:"12세|15세|18세|전체|청불",ComboCode:"01|02|03|04|05",PopupText:"12세|15세|18세|전체|청불"}
+				];
+				
+				IBS_InitSheet( mySheet , initSheet);
+				
+				doAction('search');
+
+				mySheet.FitColWidth();
+			}
+			
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":
+						//조회
+						mySheet.LoadSearchData(jsonData);
+						mySheet.SetShowButtonImage(0);
+						break;
+					case "reload":
+						//조회 데이터 삭제
+						mySheet.RemoveAll();
+						break;
+					case "save":
+						//저장 문자열 추출
+						alert("저장될 문자열:"+ mySheet.GetSaveString());
+						break;
+					case "save2":
+						//저장 문자열 추출
+						alert("저장될 문자열:"+ JSON.stringify(mySheet.GetSaveJson()));
+						break;				
+					case "insert":
+						//신규행 추가
+						mySheet.DataInsert();
+						break;
+				}
+			}
+			
+			function mySheet_OnSort(col, order) {
+				if(order =="ASC"){
+				    console.log(col + "번째 컬럼이 오름차순으로 정렬되었습니다.");
+				}else{
+					console.log(col + "번째 컬럼이 내림차순으로 정렬되었습니다.");
+				}
+
+				mySheet.ReNumberSeq()
+			}
+		</script>
+	</head>
+	<body onload="LoadPage()">
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">기본기능 > <b>트랜젝션관리</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">각 행의 데이터를 수정하거나 입력,삭제시 상태컬럼의 변화를 확인하고,저장 버튼 클릭시 서버로 전송되는 데이터를 확인한다.</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('insert')" class="f1_btn_gray lightgray">추가</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+				<a href="javascript:doAction('save')" class="f1_btn_white gray">저장</a>
+				<a href="javascript:doAction('save2')" class="f1_btn_white gray">저장 JSON</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>

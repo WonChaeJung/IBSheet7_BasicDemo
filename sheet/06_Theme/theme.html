@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/theme_data.js"></script>
+		
+
+		<title>IBSheet7-Product</title>
+		<script type="text/javascript">
+			
+			//시트 높이 계산용
+			var pageheightoffset = 250;
+			
+			
+			$(document).ready(function(){
+				
+				createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+
+				LoadPage();
+				
+				doAction($("#selTheme").val());
+			})
+			
+			
+			/*Sheet 기본 설정 */
+			function LoadPage() {
+				//아이비시트 초기화
+				var initdata = {};
+				initdata.Cfg = {MergeSheet:msHeaderOnly};
+				initdata.Cols = [
+					{Header:"No|No1","Type":"Seq","MinWidth":30, ColMerge : 0},
+					{Header:"신청인|신청인","Type":"Text","MinWidth":80, "Align" : "Center", "ColMerge":1, SaveName : "name"},
+					{Header:"신청일자|신청일자","Type":"Date","Width":100,"Format":"Ymd","ColMerge":1,"Align":"Center", SaveName : "date1"},
+					{
+						Header : "결재여부|결재여부",
+						"Type" : "CheckBox",
+						"Width":80,
+						"SaveName" : "A",
+						"ColMerge":0, SaveName : "payYn"
+					},
+					{Header:"신청금액|신청금액","Type":"AutoSum","Width":85,"SaveName":"B","Format":"Integer","ColMerge":0, SaveName : "cost"},
+					{Header:"근태기간1|시작일","Type":"Date","Width":100,"SaveName":"C","Format":"Ymd","Align":"Center","ColMerge":0, SaveName : "date2"},
+					{Header:"근태기간2|시작일","Type":"Date","Width":100,"SaveName":"D","Format":"Ymd","Align":"Center","ColMerge":0, SaveName : "date3"},
+					{Header:"시간|시작","Type":"Date","Width":100,"Format":"Hm","Align":"Center","ColMerge":1, SaveName : "startTime"},
+					{Header:"시간|종료","Type":"Date","Width":100,"Format":"Hm","Align":"Center","ColMerge":1, SaveName : "endTime"}
+				];
+				
+				IBS_InitSheet(mySheet, initdata);
+				mySheet.FitColWidth();
+				doAction('search');
+			}
+		
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search":      //조회
+						mySheet.LoadSearchData(jsonData);
+					break;
+					case "reload":        //초기화
+						mySheet.RemoveAll();
+					break;
+					case "Main":      //css class의 alias명칭 , 디자인 폴더명
+						mySheet.SetTheme('GM', 'Main');
+					break;
+					case "Main2":      
+						mySheet.SetTheme('GM2', 'Main2');
+					break;
+					case "Main3":
+						mySheet.SetTheme('GM3', 'Main3');
+					break;
+					case "Blue":      
+						mySheet.SetTheme('BL', 'Blue');
+					break;
+					case "Brown":      
+						mySheet.SetTheme('BN', 'Brown');
+					break;
+					case "Gray":      
+						mySheet.SetTheme('GY', 'Gray');
+					break;
+					case "Green":      
+						mySheet.SetTheme('GN', 'Green');
+					break;
+					case "Navy":      
+						mySheet.SetTheme('NB', 'Navy');
+					break;
+					case "Orange":      
+						mySheet.SetTheme('OR', 'Orange');
+					break;
+					case "Purple":      
+						mySheet.SetTheme('PP', 'Purple');
+					break;
+					case "Yellow":      
+						mySheet.SetTheme('YL', 'Yellow');
+					break;
+					case "YellowGreen":      
+						mySheet.SetTheme('YGN', 'YellowGreen');
+					break;
+					case "LightBrown":      
+						mySheet.SetTheme('LBN', 'LightBrown');
+					break;
+					case "LightGray":      
+						mySheet.SetTheme('LGY', 'LightGray');
+					break;
+					case "LightGreen":      
+						mySheet.SetTheme('LGN', 'LightGreen');
+					break;
+					case "LightPurple":      
+						mySheet.SetTheme('LPP', 'LightPurple');
+					break;
+					case "LightSky":      
+						mySheet.SetTheme('LS', 'LightSky');
+					break;
+					case "LightRed":      
+						mySheet.SetTheme('LR', 'LightRed');
+					break;
+				}
+				if(sAction!="Round"){
+					document.getElementById("ib_product").style.boxShadow = "10px 10px 5px #888888;";
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">Theme 기능 > <b>디자인 적용</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">시트의 디자인적인 부분(배경색상, 폰트색상, border색상)은 ibsheet.css 파일 및 각종 이미지 파일들로 구성되어져 있음</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>  
+			<div class="ib_function2 border_sheet">
+				<table class="ib_column2">
+					<tr>
+						<th class="r20">Theme 설정하기</th>
+						<td class="r20">
+							<select id="selTheme" class="contentsLeftText" onChange="doAction(this.value);">
+								<option value="">-Theme를 선택하세요-</option>
+								<option value="Main">Default</option>
+								<option value="Main2">Default2</option>
+								<option value="Main3">Default3</option>
+								<option value="Blue" selected>Blue</option>
+								<option value="Brown">Brown</option>
+								<option value="Gray">Gray</option>
+								<option value="Green">Green</option>
+								<option value="LightBrown">LightBrown</option>
+								<option value="LightGray">LightGray</option>
+								<option value="LightGreen">LightGreen</option>
+								<option value="LightPurple">LightPurple</option>
+								<option value="LightRed">LightRed</option>
+								<option value="LightSky">LightSky</option>
+								<option value="Navy">Navy</option>
+								<option value="Orange">Orange</option>
+								<option value="Purple">Purple</option>
+								<option value="Yellow">Yellow</option>
+								<option value="YellowGreen">YellowGreen</option>
+							</select>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<p class="subtit_sheet">조회리스트</p>
+			<!-- style="box-shadow: 10px 10px 5px #888888;" -->
+			<div class="ib_product" id="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>

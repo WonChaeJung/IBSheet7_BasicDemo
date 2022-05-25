@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/multilinedata1.js"></script>
+		<title>IBSheet7-Product</title>
+	</head>
+	<style>
+		.benefit_c{color:"#FF0000"}
+	</style>
+	<script type="text/javascript">
+		//시트 높이 계산용
+		var pageheightoffset = 200;
+
+		$(document).ready(function(){
+			try{
+				createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+				LoadPage();
+			} catch(e){
+				alert(e.message);
+			}
+		});
+		
+		/*Sheet 기본 설정 */
+		function LoadPage() {
+			
+			//테마설정 (CSS prefix , 폴더명)
+			// mySheet.SetTheme("GY2","Gray2");
+			
+			//시트 초기화
+			var ibsheet = {};
+			// 다중라인레코드 사용시 Merge 유형 주의
+			ibsheet.Cfg={
+				SearchMode : smLazyLoad,
+				MergeSheet : msFixedMerge + msHeaderOnly
+			}; 
+			
+			ibsheet.Cols = [
+				[
+					{ Header: "상태", Type: "Status",SaveName:"sStatus", Align: "Center",Width:50,RowSpan:2},	
+					{ Header: "선택", Type: "DelCheck",SaveName:"CHK", Edit: 1, Align: "Center",Width:50},
+					{
+						Header  : "이미지",
+						RowSpan : 2,
+						Type : "Image",
+						SaveName:"productImage",
+						Width:100,
+						Align: "Center",
+						ImgWidth:60,
+						ImgHeight:60
+					},
+					{ Header: "종류", Type: "Text", SaveName:"category", Width:100, Align: "Center",FontColor:"#AAAAAA"},
+					{ Header: "특징", Type: "Text", SaveName:"spec", Edit: 1,Width:200, Align: "Left",RowSpan:2,Wrap:1,MultiLineText:1},
+					{ Header: "가격" },
+					{ Header: "등록일", Type: "Html",SaveName:"benefit", Edit: 1,Width:80, Align: "Center"},
+					{ Header: "등록일", Type: "Text",SaveName:"cdate",Format:"Ymd",Width:80, Align: "Center"}
+				]
+				,[
+					{ Header: "상태", SaveName : "TestA"},
+					{ Header: "순번", Type: "Seq",SaveName:"SEQ", Align: "Center"},
+					{ Header: "이미지"},
+					{ Header: "제품명", Type: "Text", Hidden : 1, SaveName:"productName",  Align: "Center",FontUnderline:1},
+					{ Header: "특징"},
+					{ Header: "가격", Type: "AutoSum",SaveName:"price", Edit: 1,Width:80, Align: "Right",},
+					{ Header: "배송비", Type: "Int", Edit:1, SaveName:"shipping",  Align: "Center"},
+					{ Header: "판매자", Type: "Image",SaveName:"seller",  Align: "Center",ImgHeight:22}
+				]
+			];
+			
+			IBS_InitSheet(mySheet, ibsheet);
+			
+			//편집 가능/불가능 설정에 따른 배경색 취소
+			mySheet.SetEditableColorDiff(0);
+			
+			//편집시 방향키에 따른 커서 이동
+			mySheet.SetEditArrowBehavior(0);
+			
+			mySheet.FitColWidth();
+			//조회
+			doAction('search');
+			
+		}
+		
+
+		
+
+		/*Sheet 각종 처리*/
+		function doAction(sAction) {
+			switch(sAction) {
+				case "search":      //조회
+					mySheet.LoadSearchData(jsonData);
+					break;
+				case "reload": //조회 데이터 제거
+					mySheet.RemoveAll();
+					break;
+				case "insert":  //신규행 추가
+					mySheet.DataInsert()
+					break;
+				case "down2excel": //엑셀다운
+					mySheet.Down2Excel({"FileName":"text.xlsx",Merge:1,SheetDesign:1});
+					break;
+				case "save":  //저장할 데이터 json 형식으로 추출
+					var a = mySheet.GetSaveJson();
+					alert(JSON.stringify(a));
+					break;
+			}
+		}
+	</script>
+	<body>
+        <div class="page_title">
+            <span><a class="closeDepth" href="#">closeDepth</a></span>
+            <span class="title">기본기능 > <b>Multiline 사용 예제1</b></span>
+        </div>
+        <div class="main_content">
+            <div class="exp_product">
+                하나의 레코드 데이터를 ibsheet 안에서 두개 이상의 행으로 표현하는 기능.
+            </div>
+            <div class="ib_function float_right">
+                <a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+                <a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+                <a href="javascript:doAction('insert')" class="f1_btn_white gray">신규</a>
+                <a href="javascript:doAction('save')" class="f1_btn_white gray">저장</a>
+                <a href="javascript:doAction('down2excel')" class="f1_btn_white gray">엑셀다운</a>
+            </div>
+            <div class="clear hidden"></div>  
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+        </div>
+	</body>
+</html>

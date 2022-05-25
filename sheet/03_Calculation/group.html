@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/group.js"></script>
+		<title>IBSheet7-Product</title>
+		<script>
+
+			$(document).ready(function(){
+				try{
+					createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+					LoadPage();
+				} catch(e){
+					alert(e.message);
+				}
+			});
+			
+			function LoadPage() {
+
+				var initSheet = {
+					Cfg : {
+						SearchMode:smLazyLoad,
+						Page:50,
+						AutoFitColWidth:"search",
+						GroupRow : 1,
+						UseHeaderActionMenu : 1,
+						UseGroupActionMenu : 1
+					},
+					Cols : [
+						{Header:"NO","Type":"Text","SaveName":"pono","Width":50,"Align":"Center"},
+						{Header:"출발일자","Type":"Text","SaveName":"esd","Width":120,"Align":"Center"},
+						{Header:"도착일자","Type":"Text","SaveName":"lsd","Width":120,"Align":"Center"},
+						{Header:"용량","Type":"Text","SaveName":"qty","Width":80, GroupSumType:"Sum", NumberSort : 1},
+						{Header:"출발지점","Type":"Text","SaveName":"origin","Width":60,"Align":"Center"},
+						{Header:"도착지점","Type":"Text","SaveName":"destination","Width":60,"Align":"Center"},
+						{Header:"화물내용","Type":"Text","SaveName":"itemdesc","Width":160,"Ellipsis":1},
+						{Header:"화물상세번호","Type":"Text","SaveName":"containerno","Width":90},
+						{Header:"전체용량","Type":"Text","SaveName":"pkgqty","Width":80, GroupSumType:"Sum"}
+					]
+				};
+
+				IBS_InitSheet(mySheet, initSheet);
+		
+				mySheet.FitColWidth();
+
+				//건수 표시줄 (우측하단)
+				mySheet.SetCountPosition(4);	
+
+				//그룹 기능 사용 
+				mySheet.SetCountFormat("[BOTTOMDATA/SEARCHROWS]");
+				mySheet.SetGroupActionMenu("그룹 저장|그룹 저장 취소", "_ibSaveGroupCols|_ibResetGroupCols");
+		
+				doAction("search");
+			}
+			
+			/*Sheet 각종 처리*/
+			function doAction(sAction) {
+				switch(sAction) {
+					case "search" :
+						mySheet.LoadSearchData(jsonData);
+						break;
+					case "reload" :
+						mySheet.RemoveAll();
+						break;
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">숫자연산기능 > <b>그룹기능</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">
+				시트 생성시 그룹컬럼을 지정하여, 그룹핑된 데이터를 확인한다. 
+			</div>
+		
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>
+			<p class="subtit_sheet">조회리스트</p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>

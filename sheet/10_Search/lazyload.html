@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />	
+		<title>IBSheet7-Product</title>
+		
+		<script type="text/javascript" src="../js/common.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheetinfo.js"></script>
+		<script type="text/javascript" src="../sheet/ibsheet.js"></script>
+		<script type="text/javascript" src="./data/lazyload_data.js"></script>
+
+		<script type="text/javascript">
+
+			$(document).ready(function(){
+				try{
+					createIBSheet2("ibsheetArea1", "mySheet", "100%", "100%");
+					LoadPage();
+				} catch(e){
+					alert(e.message);
+				}
+			});
+			
+			function LoadPage() {
+				
+				var initSheet = {
+					Cfg : {
+						SearchMode : smLazyLoad,
+						MergeSheet : msHeaderOnly
+					},
+					Cols : [
+						{Header:"개봉일",Type:"Date",Width:85,SaveName:"OPEN_DATE",Format:"Ymd",Align:"Center"},
+						{Header:"영화명",Type:"Text",Width:180,SaveName:"MOVIE_NM"},
+						{Header:"영문제목",Type:"Text",Width:150,SaveName:"ENG_NM"},
+						{Header:"감독",Type:"Text",Width:120,SaveName:"DIRECTOR"},
+						{Header:"주연배우",Type:"Text",Width:150,SaveName:"ACTOR"},
+						{Header:"등급",Type:"Combo",Width:50,SaveName:"FILM_RATE",Align:"Center",ComboText:"12세|15세|18세|전체|청불",ComboCode:"01|02|03|04|05",PopupText:"12세|15세|18세|전체|청불"}
+					]
+				};
+				
+				IBS_InitSheet(mySheet, initSheet);
+				
+				// 컬럼 너비 자동 조절
+				mySheet.FitColWidth();
+				
+				// 건수 정보 표시
+				mySheet.SetCountPosition(4);
+				
+				doAction('search');
+			}
+			
+			function doAction(sAction) {
+				switch(sAction){
+					case "search" :
+						mySheet.LoadSearchData(jsonData);
+						break;
+					case "reload" :
+						mySheet.RemoveAll();
+						break;
+					case "save" :
+						alert(mySheet.GetSaveString());
+						break;
+				}
+			}
+			
+
+		</script>
+	</head>
+	<body>
+		<div class="page_title">
+			<span><a class="closeDepth" href="#">closeDepth</a></span>
+			<span class="title">데이터조회 > <b>LazyLoad조회</b></span>
+		</div>
+		<div class="main_content">
+			<div class="exp_product">
+<pre>
+스크롤에 해당하는 데이터를 순간순간 메모리에서 읽어와 화면에 로딩한다.
+</pre>
+			</div>
+			<div class="ib_function float_right">
+				<a href="javascript:doAction('reload')" class="f1_btn_gray lightgray">초기화</a>
+				<a href="javascript:doAction('search')" class="f1_btn_white gray">조회</a>
+			</div>
+			<div class="clear hidden"></div>
+			<p class="subtit_sheet">조회리스트 </p>
+			<div class="ib_product">
+				<div id="ibsheetArea1"></div>
+			</div>
+		</div>
+	</body>
+</html>
