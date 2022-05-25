@@ -22,7 +22,7 @@ if(detectmob()){
 	document.write("<script type='text/javascript' charset='utf-8' src='../../common/js/jquery-1.7.2.min.js'></script>");
 }
 
-// document.write("<script type='text/javascript' charset='utf-8' src='../../license/ibleaders.js'></script>");
+document.write("<script type='text/javascript' charset='utf-8' src='../../license/ibleaders.js'></script>");
 document.write("<script type='text/javascript' charset='utf-8' src='../../common/js/jquery.cookie.js'></script>");
 document.write("<script type='text/javascript' charset='utf-8' src='../../common/js/jquery.treeview.js'></script>");
 document.write("<script type='text/javascript' charset='utf-8' src='../../common/js/jquery.easing.1.3.js'></script>");
