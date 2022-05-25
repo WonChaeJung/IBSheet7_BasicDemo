@@ -1,0 +1,181 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="Content-Script-Type" content="text/javascript" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<title>IBSheet7-Product</title>
+		<link rel="stylesheet" href="./common/css/style.css"/>
+		<script src="./common/js/public.js" type="text/javascript"></script>
+		<script src="./sheet/sheet/ibsheetinfo.js" type="text/javascript"></script>
+		<script src="./sheet/sheet/ibsheet.js" type="text/javascript"></script>
+		
+		<link rel='stylesheet' type='text/css' href="./common/js/jquery.dynatree-1.2.8-all/dist/skin/ui.dynatree.css">
+		
+		<script type="text/javascript" src="./common/js/public.js"></script>
+		<script type='text/javascript' src='./common/js/jquery.dynatree-1.2.8-all/jquery/jquery-ui.custom.js'></script>
+		<script type='text/javascript' src='./common/js/jquery.dynatree-1.2.8-all/dist/jquery.dynatree.js'></script>
+			
+		<script type="text/javascript">
+			$(function(){
+				window.addEventListener('message', function(e){
+					document.documentElement.scrollTop = 0;
+					// setTimeout(function(){document.documentElement.scrollTop = 0}, 100)
+				});				
+				var iFrameTarget = "i_content",
+					menuList = [
+						{	title : "기본기능", isFolder : true, expand : true,
+							children : [
+								{ title : "트랜젝션관리", href : "./sheet/01_Basic/transaction.html"},
+								{ title : "데이터타입/포멧", href : "./sheet/01_Basic/datatype.html"},
+								{ title : "다중라인레코드", href : "./sheet/01_Basic/multiline1.html"},
+								{ title : "다중라인레코드2", href : "./sheet/01_Basic/multiline2.html"}
+							]
+						},
+						{ title : "헤더(Header) 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "헤더일반기능", href : "./sheet/02_Header/header.html"},
+								{ title : "필터(Filter) ", href : "./sheet/02_Header/filter.html"}
+							]
+						},
+						{ title : "숫자 연산 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "그룹기능", href : "./sheet/03_Calculation/group.html"},
+								{ title : "피벗/크로스테이블", href : "./sheet/03_Calculation/pivot.html"},
+								{ title : "합계/소계", href : "./sheet/03_Calculation/sum.html"}
+							]
+						},
+						{ title : "행열 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "편집기능", href : "./sheet/04_RowColFn/edit.html"},
+								{ title : "숨김기능", href : "./sheet/04_RowColFn/hidden.html"}
+							]
+						},
+						{ title : "머지(Merge) 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "기본 기능", href : "./sheet/05_Merge/merge.html"}
+							]
+						},/*
+						{ title : "테마 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "기본기능", href : "06_Theme/theme.html"}
+							]
+						},*/
+						{ title : "트리(Tree)기능", isFolder : true, expand : false,
+							children : [
+								{ title : "트리 일반", href : "./sheet/07_Tree/tree_basic.html"},
+								{ title : "트리소계", href : "./sheet/07_Tree/tree_subsum.html"}
+							]
+						},
+						{ title : "이벤트(Event)", isFolder : true, expand : false,
+							children : [
+								{ title : "다양한 이벤트", href : "./sheet/08_Event/event.html"}
+							]
+						},
+						{ title : "import/export 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "엑셀 연동", href : "./sheet/09_Export/excel.html"}
+							]
+						},
+						{ title : "조회", isFolder : true, expand : false,
+							children : [
+								{ title : "페이징조회", href : "./sheet/10_Search/pagingsearch.html"},
+								{ title : "LazyLoad조회", href : "./sheet/10_Search/lazyload.html"}
+							]
+						},
+						{ title : "Drag & Drop", isFolder : true, expand : false,
+							children : [
+								{ title : "셀 데이터 이동", href : "./sheet/11_DataMove/cell_move_icon.html"},
+								{ title : "셀 데이터 이동2", href : "./sheet/11_DataMove/cell_move.html"},
+								{ title : "행 데이터 이동", href : "./sheet/11_DataMove/tree_move.html"}
+							]
+						},
+						{ title : "기타 기능", isFolder : true, expand : false,
+							children : [
+								{ title : "위자드", href : "./sheet/12_Etc/wizard.html"},
+								{ title : "관계형콤보", href : "./sheet/12_Etc/comboFilter.html"}
+								// { title : "자식그리드", href : "./sheet/12_Etc/childGrid.html"}
+							]
+						}
+					]
+	
+				$("#dynatree").dynatree({
+					onActivate : function(node){
+						// console.log(node.data);
+						if(node.data.href != undefined && node.data.href != null){
+							window[iFrameTarget].location.href = node.data.href;
+						}
+					},
+					// persist : true,
+					children : menuList
+				})
+			})
+			
+			function doAction(str){
+				switch(str){
+					case 'fold':
+						$("#dynatree").dynatree("getRoot").visit(function(node){
+							node.expand(false);
+						})
+					break;
+					case 'expand':
+						$("#dynatree").dynatree("getRoot").visit(function(node){
+							node.expand(true);
+						})
+					break;	
+					
+				}
+			}
+		
+		</script>
+
+	</head>
+	<body style="overflow: hidden">
+		<div id="contactArea">
+			<h2 class="sub_logo"><a href="./index.html">IB Sheet 7</a></h2>
+			<span class="logo_exp">e-Biz Integrated Development Solution</span>
+			<div id="subtop_menu">
+				<div id="topmenu">
+					<ul class="topmenu">
+						<li class="TopMenuSelect"><a href="./index.html"><span>Sheet</span></a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div id="close_btn">
+			<a class="contact" href="#">close</a>
+		</div>
+		<div id="navigation" class="bg_sub">
+			<div id="leftmenu">
+				<script type="text/javascript">
+					function setPng24(obj) {
+						obj.width=obj.height=1;
+						obj.className=obj.className.replace(/\bpng24\b/i,'');
+						obj.style.filter =
+						"progid:DXImageTransform.Microsoft.AlphaImageLoader(src='"+ obj.src +"',sizingMethod='image');"
+						obj.src=''; 
+						return '';
+					}
+				</script>
+				<div class="icon_menu">
+					<ul>
+						<li class="sheet" id="leftmenusheet"><a href="./index.html"><img src="./common/img/icon_sub_sheet.png" alt="sheet" class="png24" /></a></li>
+						<li class="line"></li>
+					</ul>
+				</div>
+				<div class="depth2_box"  id="menu_id" style="height:100%;">
+					<div class="depth2" style="height:100%;">
+						<h2>Sheet</h2>
+						<div id="sidetree" style="height:100%;">
+							<div id="sidetreecontrol"  class="function"><a href="#" onclick="doAction('fold')">+ 접기</a>  <a href="#" onclick="doAction('expand')">- 풀기</a></div>
+							<div id="dynatree" class="wrap_dynatree"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="content">
+			<iframe frameborder=0 src="./sheet/01_Basic/transaction.html" width="100%" height="100%" name="i_content" id="i_content"  scrolling="auto" ></iframe>
+		</div>
+	</body>
+</html>
